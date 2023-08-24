@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { html } from "hono/html"
-import { HtmlEscapedString } from "hono/utils/html"
+import { Layout } from "./frontend"
+import { Example } from "./frontend/example"
 
 const app = new Hono()
 
@@ -33,6 +34,43 @@ function formFormat(from: FormData) {
   return result
 }
 
+type RequiredFormField = {}
+
+type FormField =
+  | {
+      type: "text" | "email"
+      min: number
+      max: number
+      isRequired: boolean
+      isArray: boolean
+    }
+  | {
+      type: "radio" | "checkbox" | "dropdown"
+      values: string[]
+      isRequired: boolean
+    }
+  | {
+      type: "file"
+      fileType: "image" | "any"
+      isRequired: boolean
+      isArray: boolean
+    }
+  | {
+      type: "date" | "time"
+      from: number
+      to: number
+    }
+  | {
+      type: "url" | "color"
+      isRequired: boolean
+      isArray: boolean
+    }
+  | {
+      type: "range"
+      min: number
+      max: number
+    }
+
 app.get("/", (c) => c.html(page()))
 app.get("/another", (c) => c.html(page()))
 
@@ -62,7 +100,7 @@ app.post("/simple/:id", async (c) => {
     const form = await c.req.formData()
 
     const { fields, files } = formFormat(form)
-    console.log(fields.map((x) => `${x.key}:${x.values}`))
+    fields.forEach((x) => console.log(`${x.key}: '${x.values}'`))
 
     const redirectPath = dbForm.redirect
 
@@ -83,7 +121,9 @@ app.post("/html/:id", async (c) => {
     const form = await c.req.formData()
 
     const { fields, files } = formFormat(form)
-    console.log(fields.map((x) => `${x.key}:${x.values}`))
+    fields.forEach((x) => {
+      console.log(`${x.key}: '${x.values}'`)
+    })
 
     const redirectPath = dbForm.redirect
 
@@ -99,99 +139,6 @@ app.post("/html/:id", async (c) => {
     return c.html(<div>Failure</div>)
   }
 })
-
-function style() {
-  return html`
-    <style>
-      /* Indigo Light scheme (Default) */
-      /* Can be forced with data-theme="light" */
-      [data-theme="light"],
-      :root:not([data-theme="dark"]) {
-        --primary: #3949ab;
-        --primary-hover: #303f9f;
-        --primary-focus: rgba(57, 73, 171, 0.125);
-        --primary-inverse: #fff;
-      }
-
-      /* Indigo Dark scheme (Auto) */
-      /* Automatically enabled if user has Dark mode enabled */
-      @media only screen and (prefers-color-scheme: dark) {
-        :root:not([data-theme]) {
-          --primary: #3949ab;
-          --primary-hover: #3f51b5;
-          --primary-focus: rgba(57, 73, 171, 0.25);
-          --primary-inverse: #fff;
-        }
-      }
-
-      /* Indigo Dark scheme (Forced) */
-      /* Enabled if forced with data-theme="dark" */
-      [data-theme="dark"] {
-        --primary: #3949ab;
-        --primary-hover: #3f51b5;
-        --primary-focus: rgba(57, 73, 171, 0.25);
-        --primary-inverse: #fff;
-      }
-
-      /* Indigo (Common styles) */
-      :root {
-        --form-element-active-border-color: var(--primary);
-        --form-element-focus-color: var(--primary-focus);
-        --switch-color: var(--primary-inverse);
-        --switch-checked-background-color: var(--primary);
-      }
-    </style>
-  `
-}
-
-const Layout = (props: { children: HtmlEscapedString[] | HtmlEscapedString }) => {
-  const title = "EdgeForms"
-  const description = "Forms all around the world."
-
-  return html`
-    <!DOCTYPE html>
-    <html lang="en" style="scroll-behavior: smooth;">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-        <title>${title}</title>
-        <meta name="description" content="${description}" />
-
-        <!-- <meta property="og:url" content="https://grids.fluriumteam.workers.dev/" />
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="${title}" />
-        <meta property="og:description" content="${description}" />
-        <meta
-          property="og:image"
-          content="https://grids.fluriumteam.workers.dev/public/og.png"
-        />
-
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta property="twitter:domain" content="grids.fluriumteam.workers.dev" />
-        <meta property="twitter:url" content="https://grids.fluriumteam.workers.dev/" />
-        <meta name="twitter:title" content="${title}" />
-        <meta name="twitter:description" content="${description}" />
-        <meta
-          name="twitter:image"
-          content="https://grids.fluriumteam.workers.dev/public/og.png"
-        /> -->
-
-        <!-- <link rel="icon" type="image/png" href="/public/favicon.png" sizes="16x16" />
-        <link rel="shortcut icon" type="image/x-icon" href="/public/favicon.ico" />
-        <link rel="stylesheet" href="/public/pico.min.css" /> -->
-
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
-        />
-        ${style()}
-      </head>
-
-      ${props.children}
-    </html>
-  `
-}
 
 app.get("/success", (c) => {
   const back = c.req.header("referer")
@@ -231,7 +178,7 @@ app.get("/failure", (c) => {
   const back = c.req.header("referer")
 
   return c.html(
-    <html>
+    <Layout>
       <body>
         <h1>Form submision failed</h1>
         {back ? (
@@ -242,130 +189,175 @@ app.get("/failure", (c) => {
           </button>
         )}
       </body>
-    </html>,
+    </Layout>,
     500
   )
 })
 
 function page() {
   return (
-    <html>
-      <head>
-        {html`<script>
-          /** @param {SubmitEvent} event  */
-          async function submit(event) {
-            try {
-              event.preventDefault()
-
-              /** @type {HTMLFormElement | null} */
-              const form = event.currentTarget
-              if (form == null) return
-
-              const id = form.getAttribute("edge")
-              if (id == null || id.trim().length == 0) return
-
-              const formData = new FormData(form)
-              fetch("/html/" + id.trim(), { method: "POST", body: formData })
-                .then((x) => x.text())
-                .then((x) => (form.outerHTML = x))
-                .catch((x) => (form.innerHTML = "AAAA"))
-            } catch {
-              return
-            }
-          }
-
-          /**
-           * @param {Node} node
-           * @returns {boolean}
-           */
-          function isEdgeForm(node) {
-            if (node.nodeType != Node.ELEMENT_NODE) return false
-            if (node.nodeName != "FORM") return false
-            if (!node.hasAttribute("edge")) return false
-            return true
-          }
-
-          const observer = new MutationObserver(function (mutationsList) {
-            for (const mutation of mutationsList) {
-              if (mutation.addedNodes.length <= 0) continue
-
-              for (const node of mutation.addedNodes) {
-                if (!isEdgeForm(node)) continue
-                node.addEventListener("submit", submit)
-              }
-            }
-          })
-
-          document.addEventListener("DOMContentLoaded", function () {
-            const forms = document.querySelectorAll("form[edge]")
-            for (let i = 0; i < forms.length; ++i) {
-              const form = forms.item(i)
-              form.addEventListener("submit", submit)
-            }
-            observer.observe(document.body, { childList: true, subtree: true })
-          })
-
-          async function goTop(event) {
+    <Layout
+      head={html`<script>
+        /** @param {SubmitEvent} event  */
+        async function submit(event) {
+          try {
             event.preventDefault()
 
+            /** @type {HTMLFormElement | null} */
             const form = event.currentTarget
-            console.log(form)
             if (form == null) return
 
             const id = form.getAttribute("edge")
-            //if (id == null || id.trim().length == 0) return
-            console.log(form, id)
+            if (id == null || id.trim().length == 0) return
+
+            const formData = new FormData(form)
+            fetch("/html/" + id.trim(), { method: "POST", body: formData })
+              .then((x) => x.text())
+              .then((x) => (form.outerHTML = x))
+              .catch((x) => (form.innerHTML = "AAAA"))
+          } catch {
+            return
           }
-        </script>`}
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
-        />
-        {style()}
-      </head>
-      <body class="container">
-        <main>
-          <h1>EdgeForms: valid forms all around the worlds</h1>
-          <article>
-            {`
-        <form edge="{id}">
-          <input type="email" name="email" placeholder="Email" />
-          <button type="submit">Join Waitlist</button>
-        </form>`}
-          </article>
-
-          <form edge="tsnc-lbyb-klyy-zk52">
-            <input type="email" name="email" placeholder="Email" />
-            <button type="submit">Join Waitlist</button>
-          </form>
-
-          {/* <form
-          action="/simple/tsnc-lbyb-klyy-zk52"
-          method="post"
-          enctype="multipart/form-data"
-        >
-          <input type="text" name="name" placeholder="name" />
-          <input
-            type="email"
-            name="email"
-            placeholder="email"
-            value="romankoshchei@gmail.com"
-          />
-          <input type="date" name="date" />
-          <input type="file" name="files" multiple />
-          <button type="submit">Send</button>
-        </form> */}
-
-          {/* {testOtherTools()} */}
-        </main>
-      </body>
-      {html`<script>
-        function go(event) {
-          event.preventDefault()
-          alert("trci")
         }
+
+        /**
+         * @param {Node} node
+         * @returns {boolean}
+         */
+        function isEdgeForm(node) {
+          if (node.nodeType != Node.ELEMENT_NODE) return false
+          if (node.nodeName != "FORM") return false
+          if (!node.hasAttribute("edge")) return false
+          return true
+        }
+
+        const observer = new MutationObserver(function (mutationsList) {
+          for (const mutation of mutationsList) {
+            if (mutation.addedNodes.length <= 0) continue
+
+            for (const node of mutation.addedNodes) {
+              if (!isEdgeForm(node)) continue
+              node.addEventListener("submit", submit)
+            }
+          }
+        })
+
+        document.addEventListener("DOMContentLoaded", function () {
+          const forms = document.querySelectorAll("form[edge]")
+          for (let i = 0; i < forms.length; ++i) {
+            const form = forms.item(i)
+            form.addEventListener("submit", submit)
+          }
+          observer.observe(document.body, { childList: true, subtree: true })
+        })
       </script>`}
-    </html>
+    >
+      <main class="container">
+        <hgroup>
+          <h1>EdgeForms: forms all around the worlds</h1>
+          <h2>Integrate forms into your website in minuts without pain in ass.</h2>
+        </hgroup>
+        <article style="padding:0">
+          <Example />
+        </article>
+
+        <form edge="tsnc-lbyb-klyy-zk52">
+          <input type="email" name="email" placeholder="Email" required />
+          <button type="submit">Join Waitlist</button>
+        </form>
+
+        <h2>Test form</h2>
+        <TestForm />
+      </main>
+    </Layout>
+  )
+}
+
+function TestForm() {
+  return (
+    <form action={`/simple/tsnc-lbyb-klyy-zk52`} method="post">
+      <label for="text">Text Input:</label>
+      <div class="grid" style="grid-template-columns: 1fr;" id="texts">
+        <input type="text" id="text" name="text" value="Text" required />
+      </div>
+
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" value="How to validate?" />
+
+      <label for="textarea">Textarea:</label>
+      <textarea id="textarea" name="textarea" rows="4" cols="50">
+        Long text
+      </textarea>
+
+      <fieldset>
+        <label>Radio Buttons:</label>
+        <input type="radio" id="cat" name="radio" value="cat" checked />
+        <label for="cat">Cat Option</label>
+        <input type="radio" id="dog" name="radio" value="dog" />
+        <label for="dog">Dog Option</label>
+      </fieldset>
+
+      <fieldset>
+        <label>Checkboxes:</label>
+        <input type="checkbox" id="money" name="checkbox" value="money" checked />
+        <label for="money">Money Option</label>
+        <input type="checkbox" id="time" name="checkbox" value="time" checked />
+        <label for="time">Time Option</label>
+      </fieldset>
+
+      <label for="dropdown">Dropdown List:</label>
+      <select id="dropdown" name="dropdown">
+        <option value="male">Male Option</option>
+        <option value="female">Female Option</option>
+      </select>
+
+      <label for="dropdowns">Multiple Dropdown:</label>
+      <select id="dropdowns" name="dropdowns" multiple>
+        <option value="cloudflare" selected>
+          Cloudflare Option
+        </option>
+        <option value="typescript" selected>
+          TypeScript Option
+        </option>
+        <option value="hono" selected>
+          Hono Option
+        </option>
+        <option value="htmx">HTMX Option</option>
+      </select>
+      <label for="file">File Upload:</label>
+      <input type="file" id="file" name="file" />
+
+      <label for="files">Multiple Files:</label>
+      <input type="file" id="files" name="files" multiple />
+
+      <label for="date">Date Input:</label>
+      <input type="date" id="date" name="date" value="2023-08-18" />
+
+      <label for="time">Time Input:</label>
+      <input type="time" id="time" name="time" value="11:24" />
+
+      <label for="datetime">Date and time Input:</label>
+      <input type="datetime-local" id="datetime" name="datetime" />
+
+      <label for="number">Number Input:</label>
+      <input type="number" id="number" name="number" value="10" min="1" max="10" />
+
+      <label for="email">Email Input:</label>
+      <input type="email" id="email" name="email" value="roman@flurium.com" />
+
+      <label for="url">URL Input:</label>
+      <input type="url" id="url" name="url" value="https://flurium.com" />
+
+      <label for="color">Color Picker:</label>
+      <input type="color" id="color" name="color" value="#3949ab" />
+
+      <label for="range">Range Input:</label>
+      <input type="range" id="range" name="range" min="0" max="100" step="5" value="10" />
+
+      <input type="hidden" name="honeypot" />
+
+      <input type="submit" value="Submit" />
+    </form>
   )
 }
 

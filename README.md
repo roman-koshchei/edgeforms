@@ -11,6 +11,15 @@ Forms all around the world.
 </form>
 ```
 
+## Use cases
+
+- Join waitlist: text, email
+- Contact form: text, long-text, email
+- Survey: different fields
+- Resume upload: text, radio, file
+- Newsletter: email
+- Fill form to check: dropdown, range, radio
+
 ## Ways to submit
 
 I want to support innovative ways to make form submitions as well as already stable ones.
@@ -82,3 +91,20 @@ with frameworks like React. Add small library to make calls to API more typesafe
 ## Need
 
 - Honeypot: hidden empty field, if not empty then it's bot.
+
+## Svelte
+
+To use in Svelte with typescript: create any file with `.d.ts` extension.
+Add code below:
+
+```ts
+import { HTMLFormAttributes } from "svelte/elements"
+
+declare module "svelte/elements" {
+  export interface HTMLFormAttributes {
+    edge?: string
+  }
+}
+
+export {}
+```

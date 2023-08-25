@@ -1,16 +1,12 @@
 import { text, integer, blob, sqliteTable } from "drizzle-orm/sqlite-core"
 import { sql } from "drizzle-orm"
-
-// if we would want to switch into nanoid
-function createId() {
-  return crypto.randomUUID()
-}
+import { uniqueId } from "../lib"
 
 export const forms = sqliteTable("forms", {
-  id: text("id").primaryKey().$defaultFn(createId),
+  id: text("id").primaryKey().$defaultFn(uniqueId),
 })
 export const fields = sqliteTable("fields", {
-  key: text("key").primaryKey().$defaultFn(createId),
+  key: text("key").primaryKey().$defaultFn(uniqueId),
 
   formId: text("form_id")
     .references(() => forms.id)
@@ -22,7 +18,7 @@ type SubmissionField = {
   values: string[]
 }
 export const submissions = sqliteTable("submissions", {
-  id: text("id").primaryKey().$defaultFn(createId),
+  id: text("id").primaryKey().$defaultFn(uniqueId),
 
   formId: text("form_id")
     .references(() => forms.id)
@@ -36,7 +32,7 @@ export const submissions = sqliteTable("submissions", {
 })
 
 export const submissionFiles = sqliteTable("submission_files", {
-  key: text("key").primaryKey().$defaultFn(createId),
+  key: text("key").primaryKey().$defaultFn(uniqueId),
   bucket: text("bucket"),
   provider: text("provider", { enum: ["storj", "github"] }),
 

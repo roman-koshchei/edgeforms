@@ -2,7 +2,9 @@ import { html } from "hono/html"
 import { Layout } from "."
 import { Example } from "./example"
 
-export function Landing() {
+export function Landing(props: {
+  email: { value?: string | null; error?: string; invalid?: boolean }
+}) {
   return (
     <Layout>
       <main class="container">
@@ -16,14 +18,47 @@ export function Landing() {
           <Example />
         </article>
 
-        <form edge="tsnc-lbyb-klyy-zk52">
-          <input type="email" name="email" placeholder="Email" required />
+        <form method="post">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Email"
+            required
+          />
+          <small>
+            {props.email.error ??
+              "We'll never share your email with anyone else."}
+          </small>
           <button type="submit">Join Waitlist</button>
         </form>
 
-        <a role="button" class="outline" href="/start">
+        {/* <a role="button" class="outline" href="/start">
           Start now
-        </a>
+        </a> */}
+      </main>
+    </Layout>
+  )
+}
+
+export function LandingSuccess() {
+  return (
+    <Layout>
+      <main class="container">
+        <hgroup>
+          <h1>EdgeForms: forms all around the worlds</h1>
+          <h2>
+            Integrate forms into your website in minuts without pain in ass.
+          </h2>
+        </hgroup>
+        <article style="padding:0">
+          <Example />
+        </article>
+
+        <h3>
+          <ins> Thanks for subscribing</ins>
+        </h3>
       </main>
     </Layout>
   )

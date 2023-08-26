@@ -1,27 +1,52 @@
+import { errors } from "jose"
 import { Layout } from "."
+import * as v from "valibot"
 
 // Creating user
 
 // Verifing email
 // Forgot password
 
+export const passwordSchema = v.string("Password is missing.", [
+  v.minLength(8, "Password should be 8 or more symbols"),
+])
+
+export const emailSchema = v.string("Email is missing or not valid.", [
+  v.email("Email isn't valid."),
+])
+
 // Page
 
-export function StartPage() {
+type FormInput = {
+  value?: string | null
+  error?: string
+  invalid?: boolean
+}
+
+export function StartPage(props: { email: FormInput; password: FormInput }) {
   return (
     <Layout>
       <main class="container">
-        <h1>Start creating forms now</h1>
-        <form>
+        <hgroup>
+          <h1>Start creating forms now</h1>
+          <h2>By using EdgeForms you agree with Tearms of Service.</h2>
+        </hgroup>
+
+        <form method="post">
           <label for="email">Email address</label>
           <input
             type="email"
             id="email"
             name="email"
             placeholder="Email address"
+            value={props.email.value}
+            aria-invalid={props.email.invalid}
             required
           />
-          <small>We'll never share your email with anyone else.</small>
+          <small>
+            {props.email.error ??
+              "We'll never share your email with anyone else."}
+          </small>
 
           <label for="password">Password</label>
           <input
@@ -29,11 +54,13 @@ export function StartPage() {
             id="password"
             name="password"
             placeholder="Secret password"
+            value={props.password.value}
+            aria-invalid={props.password.invalid}
             required
           />
           <small>
-            Don't forget your password, we don't know when "Forgot password"
-            feature will be available.
+            {props.password.error ??
+              "Don't forget your password, we don't know when 'Forgot password' feature will be available."}
           </small>
 
           <button type="submit">Start now</button>

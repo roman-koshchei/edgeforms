@@ -11,6 +11,8 @@ Forms all around the world.
 </form>
 ```
 
+Temporary link: [edgeforms.fluriumteam.workers.dev](https://edgeforms.fluriumteam.workers.dev/)
+
 ## Use cases
 
 - Join waitlist: text, email

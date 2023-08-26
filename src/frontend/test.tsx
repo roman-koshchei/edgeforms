@@ -1,6 +1,6 @@
 export function TestForm() {
   return (
-    <form action={`/simple/tsnc-lbyb-klyy-zk52`} method="post">
+    <form action={`/form/tsnc-lbyb-klyy-zk52`} method="post">
       <label for="text">Text Input:</label>
       <div class="grid" style="grid-template-columns: 1fr;" id="texts">
         <input type="text" id="text" name="text" value="Text" required />

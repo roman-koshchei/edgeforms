@@ -1,6 +1,30 @@
 import { html } from "hono/html"
-import { Layout } from "."
-import { Example } from "./example"
+import { Layout } from "../frontend"
+import { Example } from "../frontend/example"
+import { App } from ".."
+import { formInput, emailSchema } from "../lib"
+
+export function mapLanding(app: App) {
+  app.get("/", (c) => c.html(<Landing email={{}} />))
+  app.post("/", async (c) => {
+    const form = await c.req.formData()
+    const email = await formInput(form, "email", emailSchema)
+
+    if (email.error == undefined) {
+      return c.html(<LandingSuccess />)
+    }
+
+    return c.html(
+      <Landing
+        email={{
+          value: email.value,
+          error: email.error,
+          invalid: true,
+        }}
+      />
+    )
+  })
+}
 
 export function Landing(props: {
   email: { value?: string | null; error?: string; invalid?: boolean }

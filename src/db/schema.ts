@@ -1,22 +1,26 @@
 import { text, integer, blob, sqliteTable } from "drizzle-orm/sqlite-core"
 import { sql } from "drizzle-orm"
 import { uniqueId } from "../lib"
+import { FieldValidation, SubmissionField } from "./types"
 
 export const forms = sqliteTable("forms", {
   id: text("id").primaryKey().$defaultFn(uniqueId),
 })
-export const fields = sqliteTable("fields", {
-  key: text("key").primaryKey().$defaultFn(uniqueId),
 
+export const fields = sqliteTable("fields", {
+  id: text("id").primaryKey().$defaultFn(uniqueId),
   formId: text("form_id")
     .references(() => forms.id)
     .notNull(),
+
+  // key is separated from id, because it can avoid pain in ass in future
+  key: text("key").notNull(),
+  // dangerous, but it's sqlite. anyway it will be mess.
+  validation: blob("validation", { mode: "json" })
+    .$type<FieldValidation>()
+    .notNull(),
 })
 
-type SubmissionField = {
-  key: string
-  values: string[]
-}
 export const submissions = sqliteTable("submissions", {
   id: text("id").primaryKey().$defaultFn(uniqueId),
 
@@ -24,9 +28,9 @@ export const submissions = sqliteTable("submissions", {
     .references(() => forms.id)
     .notNull(),
 
-  createdAt: integer("created_at", { mode: "timestamp" }).default(
-    sql`CURRENT_TIMESTAMP`
-  ),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 
   fields: blob("fields", { mode: "json" }).$type<SubmissionField[]>().notNull(),
 })

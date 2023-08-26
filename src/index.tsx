@@ -1,29 +1,15 @@
 import { Hono } from "hono"
-import { Landing, LandingSuccess } from "./frontend/landing"
-import { formInput } from "./lib"
-import { emailSchema } from "./frontend/auth"
+import { mapLanding } from "./features/landing"
 
-const app = new Hono()
+type Env = {
+  Bindings: {}
+}
 
-app.get("/", (c) => c.html(<Landing email={{}} />))
-app.post("/", async (c) => {
-  const form = await c.req.formData()
-  const email = await formInput(form, "email", emailSchema)
+const app = new Hono<Env>()
 
-  if (email.error == undefined) {
-    return c.html(<LandingSuccess />)
-  }
+export type App = typeof app
 
-  return c.html(
-    <Landing
-      email={{
-        value: email.value,
-        error: email.error,
-        invalid: true,
-      }}
-    />
-  )
-})
+mapLanding(app)
 
 // app.get("/start", (c) => c.html(<StartPage email={{}} password={{}} />))
 
@@ -51,18 +37,6 @@ app.post("/", async (c) => {
 //   )
 // })
 
-/*
-
-- check rate limits
-- find form by id and permissions
-- get form fields and files
-- check files size
-- upload files to storage
-- add submission to db
-- send email if permission
-- return redirect to page (saccess/fail)
-
-*/
 // app.post("/simple/:id", async (c) => {
 //   try {
 //     const { id } = c.req.param()

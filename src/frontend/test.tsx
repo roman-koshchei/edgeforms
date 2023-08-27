@@ -73,7 +73,12 @@ export function TestForm() {
       <input type="time" id="time" name="time" value="11:24" />
 
       <label for="datetime">Date and time Input:</label>
-      <input type="datetime-local" id="datetime" name="datetime" />
+      <input
+        type="datetime-local"
+        id="datetime"
+        name="datetime"
+        value="2018-06-12T19:30"
+      />
 
       <label for="number">Number Input:</label>
       <input

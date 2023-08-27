@@ -3,6 +3,7 @@ import { Layout } from "../frontend"
 import { Example } from "../frontend/example"
 import { App } from ".."
 import { formInput, emailSchema } from "../lib"
+import * as v from "valibot"
 
 export function mapLanding(app: App) {
   app.get("/", (c) => c.html(<Landing email={{}} />))
@@ -38,7 +39,8 @@ export function Landing(props: {
             Integrate forms into your website in minuts without pain in ass.
           </h2>
         </hgroup>
-        <article style="padding:0">
+
+        <article style="padding:0;background-color:white;">
           <Example />
         </article>
 

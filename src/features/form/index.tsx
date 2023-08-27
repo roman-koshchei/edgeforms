@@ -1,4 +1,5 @@
 import { App } from "../.."
+import { Field } from "../../db/types"
 import { formFormat } from "../../lib"
 
 /*
@@ -35,51 +36,6 @@ async function uploadFiles(files: File[]) {
     return true
   } catch {
     return false
-  }
-}
-
-const dbFields = [
-  {
-    key: "email",
-    validation: { type: "email", required: true },
-  },
-  {
-    key: "files",
-    validation: { type: "file", multiple: true },
-  },
-  {
-    key: "gender",
-    validation: { type: "radio", values: ["male", "female"] },
-  },
-  {
-    key: "fruits",
-    validation: { type: "checkbox", values: ["apple", "banana"] },
-  },
-]
-
-async function validateFields(fields: { key: string; values: string[] }[]) {
-  let submissionFields = []
-
-  for (let i = 0; i < dbFields.length; ++i) {
-    const dbField = dbFields[0]
-    const field = fields.find((x) => x.key == dbField.key)
-
-    if (field == null) {
-      if (dbField.validation.required) return false
-      submissionFields.push({ key: dbField.key, values: [] })
-      continue
-    }
-
-    if (dbField.validation.required) {
-      if (field.values.length == 0) return false
-    }
-
-    if (
-      dbField.validation.multiple == undefined ||
-      dbField.validation.multiple == false
-    ) {
-      if (field.values.length > 1) return false
-    }
   }
 }
 

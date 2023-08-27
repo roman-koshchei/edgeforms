@@ -1,9 +1,18 @@
+export type Field = {
+  key: string
+  validation: FieldValidation
+}
+
+export type SubmissionField = {
+  key: string
+  values: string[]
+}
+
 /*
 
 Think 100 times to change it. DON'T BREAK!
 
 */
-
 export type FieldValidation =
   | {
       type: "text"
@@ -16,6 +25,7 @@ export type FieldValidation =
   | {
       type: "radio"
       options: string[]
+      required: boolean
     }
   | {
       type: "checkbox"
@@ -49,11 +59,7 @@ export type FieldValidation =
     }
   | {
       type: "range"
-      min: number
-      max: number
+      required: boolean
+      min?: number
+      max?: number
     }
-
-export type SubmissionField = {
-  key: string
-  values: string[]
-}

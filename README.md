@@ -1,5 +1,3 @@
-![Banner](./assets/banner.svg)
-
 # EdgeForms
 
 Forms all around the world.

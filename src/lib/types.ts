@@ -8,6 +8,13 @@ export type SubmissionField = {
   values: string[]
 }
 
+export type FormFile = { id: string; data: File }
+
+export type Form = {
+  files: FormFile[]
+  fields: { key: string; values: string[] }[]
+}
+
 /*
 
 Think 100 times to change it. DON'T BREAK!
@@ -63,3 +70,12 @@ export type FieldValidation =
       min?: number
       max?: number
     }
+
+export const fileProviders = ["storj", "github"] as const
+export type FileProvider = (typeof fileProviders)[number]
+
+export type StorageFile = {
+  key: string
+  bucket: string
+  provider: FileProvider
+}

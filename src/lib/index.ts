@@ -1,44 +1,61 @@
-import * as v from "valibot"
-
-export * from "./validation"
-
 // if we would want to switch into nanoid
 export function uniqueId() {
   return crypto.randomUUID()
 }
+import * as jose from "jose"
+import * as v from "valibot"
 
-export function formFormat(from: FormData) {
-  let result = {
-    files: [] as File[],
-    fields: [] as { key: string; values: string[] }[],
-  }
-  const entries = from.entries() as IterableIterator<
-    [key: string, value: File | string]
-  >
-  for (const [key, value] of entries) {
-    let str: string
-    if (value instanceof File) {
-      str = `${uniqueId()}`
-      result.files.push(value)
-    } else {
-      str = value
-    }
-
-    const exist = result.fields.find((x) => x.key == key)
-    if (!exist) {
-      result.fields.push({ key: key, values: [str] })
-    } else {
-      exist.values.push(str)
-    }
-  }
-  return result
+type JwtSecrets = {
+  issuer: string
+  audience: string
+  secret: string
 }
 
-export async function formInput<
-  Schema extends v.BaseSchema | v.BaseSchemaAsync
->(form: FormData, key: string, schema: Schema) {
-  const input = form.get(key)
-  const validation = await v.safeParseAsync(schema, input)
-  if (validation.success) return { value: validation.output }
-  return { value: input, error: validation.issues[0].message }
+const jwtClaimsSchema = v.object({
+  uid: v.string(),
+  version: v.number(),
+  iat: v.number(),
+  exp: v.number()
+})
+
+type JwtClaims = v.Output<typeof jwtClaimsSchema>
+
+type InputJwtClaims = {
+  uid: string
+  version: number
+}
+
+export async function jwtCreateToken(
+  claims: InputJwtClaims,
+  secrets: JwtSecrets
+) {
+  const secret = new TextEncoder().encode(secrets.secret)
+
+  const token = await new jose.SignJWT(claims)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setIssuer(secrets.issuer)
+    .setAudience(secrets.audience)
+    .setExpirationTime("30days")
+    .sign(secret)
+
+  return token
+}
+
+export async function jwtValidateToken(
+  token: string,
+  secrets: JwtSecrets
+): Promise<JwtClaims | null> {
+  try {
+    const secret = new TextEncoder().encode(secrets.secret)
+    const { payload } = await jose.jwtVerify(token, secret, {
+      issuer: secrets.issuer,
+      audience: secrets.audience
+    })
+
+    const validation = await v.safeParseAsync(jwtClaimsSchema, payload)
+    return validation.success ? validation.output : null
+  } catch {
+    return null
+  }
 }

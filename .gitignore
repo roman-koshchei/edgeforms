@@ -1,9 +1,10 @@
+.DS_Store
 node_modules
-dist
-.wrangler
-
-# Change them to your taste:
-# wrangler.toml
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+/build
+/.svelte-kit
+/package
+.env
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

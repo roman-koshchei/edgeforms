@@ -1,47 +1,5 @@
 import * as v from "valibot"
-import type { Field, FieldValidation, SubmissionField } from "../../db/types"
-
-const dbFields: Field[] = [
-  {
-    key: "email",
-    validation: { type: "email", required: true },
-  },
-  {
-    key: "files",
-    validation: { type: "file", multiple: true, required: true },
-  },
-  {
-    key: "gender",
-    validation: { type: "radio", options: ["male", "female"], required: true },
-  },
-  {
-    key: "fruits",
-    validation: { type: "checkbox", options: ["apple", "banana"] },
-  },
-]
-
-function buildValidation({ key, validation }: Field) {
-  if (validation.type == "text") {
-    if (validation.required) {
-      return v.string(`${key} must be string.`)
-    }
-    return v.optional(v.string(`${key} is required and must be string.`))
-  }
-
-  if (validation.type == "email") {
-    if (validation.required) {
-      return v.string(`${key} must be string.`)
-    } else {
-      return v.optional(v.string(`${key} is required and must be string.`))
-    }
-  }
-}
-
-function buildAllValidation(fields: Field[]) {
-  for (let i = 0; i < fields.length; ++i) {
-    const field = fields[i]
-  }
-}
+import type { Field, SubmissionField } from "$lib/types"
 
 function stringToNumber(value: string) {
   try {
@@ -67,7 +25,8 @@ async function parseValidation(
 
 async function validate(
   { key, validation }: Field,
-  values: string[]
+  values: string[],
+  files: FormFile[]
 ): Promise<ValidationResult> {
   if (validation.type == "text") {
     const schema = v.array(
@@ -80,7 +39,7 @@ async function validate(
   if (validation.type == "email") {
     const schema = v.array(
       v.string(`${key} must be valid email.`, [
-        v.email(`${key} must be valid email.`),
+        v.email(`${key} must be valid email.`)
       ]),
       validation.required ? [v.minLength(1, `${key} is required.`)] : undefined
     )
@@ -226,24 +185,53 @@ async function validate(
   }
 
   if (validation.type == "file") {
-    // ??????
-    /*
+    if (values.length == 0) {
+      return validation.required
+        ? [false, [`${key} is required.`]]
+        : [true, null]
+    }
 
+    if (validation.multiple == false && values.length > 1) {
+      return [false, [`Only 1 value of ${key} is possible.`]]
+    }
 
-    ???
+    // TODO: remake
+    for (let i = 0; i < values.length; ++i) {
+      const value = values[i]
+      const file = files.find((x) => x.id == value)
+      if (file == undefined) {
+        // there isn't file
+        // value isn't a file
+        return [false, [`${key} value must be a file.`]]
+      }
+    }
 
-
-    */
+    return [true, null]
   }
 
   return [false, ["Field isn't found."]]
 }
 
-async function validateFields(fields: SubmissionField[]) {
-  let submissionFields = []
+export async function validateFields(dbFields: Field[], form: Form) {
+  let submissionFields: SubmissionField[] = []
+  let errors: string[][] = []
 
   for (let i = 0; i < dbFields.length; ++i) {
     const dbField = dbFields[0]
-    const field = fields.find((x) => x.key == dbField.key)
+    const field = form.fields.find((x) => x.key == dbField.key) ?? {
+      key: dbField.key,
+      values: []
+    }
+    const [validated, error] = await validate(dbField, field.values, form.files)
+    if (!validated) {
+      errors.push(error)
+    } else {
+      submissionFields.push(field)
+    }
+  }
+
+  return {
+    fields: submissionFields,
+    errors: errors
   }
 }

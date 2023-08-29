@@ -40,7 +40,7 @@
 
 <style>
   main {
-    padding: var(--block-spacing-vertical) 0;
+    padding: var(--block-spacing-vertical) 1rem;
   }
 
   @media (min-width: 576px) {

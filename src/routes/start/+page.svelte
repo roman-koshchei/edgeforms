@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { enhance } from "$app/forms"
   import type { ActionData } from "./$types"
 
   export let form: ActionData
@@ -18,7 +19,7 @@
   </p>
 {/if}
 
-<form method="post">
+<form method="post" use:enhance>
   <label for="email">Email address</label>
   <input
     type="email"

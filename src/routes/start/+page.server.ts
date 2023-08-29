@@ -1,10 +1,17 @@
 import type { BaseSchema } from "valibot"
-import type { Actions } from "./$types"
+import type { Actions, PageServerLoad } from "./$types"
+import { Resend } from "resend"
 import * as v from "valibot"
 import bcrypt from "bcryptjs"
-import { insertUser, selectUser } from "$lib/server/repo/user"
-import { jwtCreateToken } from "$lib"
+import { insertUser, selectUser, userExist } from "$lib/server/repo/user"
+import { jwtCreateToken, jwtValidateToken } from "$lib"
 import { redirect, type RequestEvent } from "@sveltejs/kit"
+import {
+  getAuthCookie,
+  removeAuthCookie,
+  setAuthCookie
+} from "$lib/server/cookies"
+import { RESEND_API_KEY } from "$env/static/private"
 
 type FormStructure = {
   [key: string]: BaseSchema
@@ -33,6 +40,8 @@ async function validateFormData<T extends FormStructure>(
   return { data: result }
 }
 
+const resend = new Resend(RESEND_API_KEY)
+
 async function authUser(email: string, password: string) {
   const user = await selectUser(email)
   if (user != undefined) {
@@ -41,19 +50,34 @@ async function authUser(email: string, password: string) {
   }
 
   const hash = await bcrypt.hash(password, 12)
-  return insertUser(email, hash)
+  const claims = await insertUser(email, hash)
+  if (claims == null) return null
+
+  const confirmationLink = ""
+
+  try {
+    await resend.emails.send({
+      from: "roman@flurium.com",
+      to: [email],
+      subject: "Confirm EdgeForms account",
+      html: `Use link to <a href="${confirmationLink}">Confirm account</a>`
+    })
+  } catch {}
+
+  return claims
 }
 
-function setAuthCookie(event: RequestEvent, token: string) {
-  const expiration = new Date()
-  expiration.setDate(expiration.getDate() + 30)
+export const load: PageServerLoad = async (event) => {
+  const cookie = getAuthCookie(event)
+  if (cookie == undefined) return
 
-  event.cookies.set("refresh-only", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    expires: expiration
-  })
+  const claims = await jwtValidateToken(cookie)
+  if (claims == null) return
+
+  const exist = await userExist(claims.id, claims.version)
+  if (exist) throw redirect(302, "/dashboard")
+
+  removeAuthCookie(event)
 }
 
 export const actions = {

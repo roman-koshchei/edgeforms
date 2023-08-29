@@ -1,5 +1,5 @@
 import * as v from "valibot"
-import type { Field, SubmissionField } from "$lib/types"
+import type { Field, Form, FormFile, SubmissionField } from "$lib/types"
 
 function stringToNumber(value: string) {
   try {

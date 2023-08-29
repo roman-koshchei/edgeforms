@@ -1,7 +1,22 @@
+<script lang="ts">
+  import type { ActionData } from "./$types"
+
+  export let form: ActionData
+
+  let email: string = ""
+  let password: string = ""
+</script>
+
 <hgroup>
   <h1>Start creating forms now</h1>
   <h2>By using EdgeForms you agree with Tearms of Service.</h2>
 </hgroup>
+
+{#if form != null}
+  <p>
+    <mark>{form.error}</mark>
+  </p>
+{/if}
 
 <form method="post">
   <label for="email">Email address</label>
@@ -10,13 +25,10 @@
     id="email"
     name="email"
     placeholder="Email address"
-    value={props.email.value}
-    aria-invalid={props.email.invalid}
+    value={email}
     required
   />
-  <small>
-    {props.email.error ?? "We'll never share your email with anyone else."}
-  </small>
+  <small>We'll never share your email with anyone else. </small>
 
   <label for="password">Password</label>
   <input
@@ -24,13 +36,12 @@
     id="password"
     name="password"
     placeholder="Secret password"
-    value={props.password.value}
-    aria-invalid={props.password.invalid}
+    value={password}
     required
   />
   <small>
-    {props.password.error ??
-      "Don't forget your password, we don't know when 'Forgot password' feature will be available."}
+    Don't forget your password, we don't know when 'Forgot password' feature
+    will be available.
   </small>
 
   <button type="submit">Start now</button>

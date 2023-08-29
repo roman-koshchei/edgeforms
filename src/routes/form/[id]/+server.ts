@@ -1,6 +1,11 @@
-import { insertForm, insertSubmission, selectFormFields } from "$lib/form/db"
+import {
+  insertForm,
+  insertSubmission,
+  selectFormFields
+} from "$lib/server/repo/form"
 import { validateFields } from "$lib/form/validation"
 import { error, redirect, type RequestHandler } from "@sveltejs/kit"
+import type { StorageFile } from "$lib/types"
 
 function uniqueId() {
   return crypto.randomUUID()
@@ -85,53 +90,53 @@ export const POST: RequestHandler = async ({ request, params }) => {
   const body = await request.formData()
   console.log(JSON.stringify(formFormat(body)))
 
-  const formId = await insertForm([
-    {
-      key: "email",
-      validation: {
-        type: "email",
-        required: true
-      }
-    }
-  ])
-  console.log(formId)
-  const formFields = await selectFormFields(id)
+  // const formId = await insertForm([
+  //   {
+  //     key: "email",
+  //     validation: {
+  //       type: "email",
+  //       required: true
+  //     }
+  //   }
+  // ])
+  // console.log(formId)
+  // const formFields = await selectFormFields(id)
 
-  if (formFields.length == 0) {
-    // form not found
-  }
+  // if (formFields.length == 0) {
+  //   // form not found
+  // }
 
-  const formated = formFormat(form)
-  if (!fileSizeAllowed(formated.files.map((x) => x.data))) {
-    // error
-  }
+  // const formated = formFormat(form)
+  // if (!fileSizeAllowed(formated.files.map((x) => x.data))) {
+  //   // error
+  // }
 
-  let files: StorageFile[] = []
-  if (formated.files.length > 0) {
-    const uploaded = await uploadFiles(formated.files)
-    if (!uploaded) return c.status(500)
-    files = uploaded
-  }
+  // let files: StorageFile[] = []
+  // if (formated.files.length > 0) {
+  //   const uploaded = await uploadFiles(formated.files)
+  //   if (!uploaded) return c.status(500)
+  //   files = uploaded
+  // }
 
-  const validation = await validateFields(formFields, formated)
-  if (validation.errors.length > 0) {
-    // error
-  }
+  // const validation = await validateFields(formFields, formated)
+  // if (validation.errors.length > 0) {
+  //   // error
+  // }
 
-  const inserted = await insertSubmission(
-    id,
-    validation.fields.map((x) => {
-      // stoopid
-      return {
-        fieldKey: x.key,
-        values: x.values
-      }
-    }),
-    files
-  )
-  if (!inserted) {
-    // delete uploaded files
-  }
+  // const inserted = await insertSubmission(
+  //   id,
+  //   validation.fields.map((x) => {
+  //     // stoopid
+  //     return {
+  //       fieldKey: x.key,
+  //       values: x.values
+  //     }
+  //   }),
+  //   files
+  // )
+  // if (!inserted) {
+  //   // delete uploaded files
+  // }
 
   throw redirect(302, "/")
 }

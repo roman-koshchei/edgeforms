@@ -26,7 +26,7 @@
   </fieldset>
 
   <fieldset>
-    <label>Checkboxes:</label>
+    <h3>Checkboxes:</h3>
     <input type="checkbox" id="money" name="checkbox" value="money" checked />
     <label for="money">Money Option</label>
     <input type="checkbox" id="time" name="checkbox" value="time" checked />

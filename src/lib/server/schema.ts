@@ -6,8 +6,18 @@ import {
   primaryKey
 } from "drizzle-orm/sqlite-core"
 import { sql } from "drizzle-orm"
-import { uniqueId } from "$lib"
-import { fileProviders, type FieldValidation } from "$lib/types"
+import { fileProviders, type FieldValidation } from "../types"
+
+export function uniqueId() {
+  return crypto.randomUUID()
+}
+
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey().$defaultFn(uniqueId),
+  version: integer("version").notNull().default(0),
+  email: text("email").unique().notNull(),
+  passwordHash: text("password_hash").notNull()
+})
 
 export const forms = sqliteTable("forms", {
   id: text("id").primaryKey().$defaultFn(uniqueId)

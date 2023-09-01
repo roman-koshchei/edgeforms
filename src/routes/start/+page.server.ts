@@ -5,7 +5,7 @@ import * as v from "valibot"
 import bcrypt from "bcryptjs"
 import { insertUser, selectUser, userExist } from "$lib/server/repo/user"
 import { jwtCreateToken, jwtValidateToken } from "$lib"
-import { redirect, type RequestEvent } from "@sveltejs/kit"
+import { redirect } from "@sveltejs/kit"
 import {
   getAuthCookie,
   removeAuthCookie,

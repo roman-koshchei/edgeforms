@@ -16,8 +16,22 @@ export const users = sqliteTable("users", {
   id: text("id").primaryKey().$defaultFn(uniqueId),
   version: integer("version").notNull().default(0),
   email: text("email").unique().notNull(),
+  emailConfirmed: integer("email_confirmed", { mode: "boolean" })
+    .notNull()
+    .default(false),
   passwordHash: text("password_hash").notNull()
 })
+
+export const userTokens = sqliteTable("user_tokens", {
+  id: text("id").primaryKey().$defaultFn(uniqueId),
+  type: text("type", { enum: ["confirm-email", "forgot-password"] }).notNull(),
+  expires: integer("created_at", { mode: "timestamp" }).notNull(),
+
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+})
+type NewUserToken = typeof userTokens.$inferInsert
 
 export const forms = sqliteTable("forms", {
   id: text("id").primaryKey().$defaultFn(uniqueId)
@@ -32,7 +46,7 @@ export const fields = sqliteTable(
       .notNull(),
 
     formId: text("form_id")
-      .references(() => forms.id, { onDelete: "cascade", onUpdate: "cascade" })
+      .references(() => forms.id, { onDelete: "cascade" })
       .notNull()
   },
   (table) => {
@@ -47,7 +61,7 @@ export const submissions = sqliteTable("submissions", {
   id: text("id").primaryKey().$defaultFn(uniqueId),
 
   formId: text("form_id")
-    .references(() => forms.id, { onDelete: "cascade", onUpdate: "cascade" })
+    .references(() => forms.id, { onDelete: "cascade" })
     .notNull(),
 
   createdAt: integer("created_at", { mode: "timestamp" })
@@ -61,8 +75,7 @@ export const submissionFields = sqliteTable(
     submissionId: text("submission_id")
       .notNull()
       .references(() => submissions.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade"
+        onDelete: "cascade"
       }),
 
     fieldKey: text("field_key")
@@ -88,8 +101,7 @@ export const submissionFiles = sqliteTable("submission_files", {
 
   submissionId: text("submission_id")
     .references(() => submissions.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade"
+      onDelete: "cascade"
     })
     .notNull()
 })

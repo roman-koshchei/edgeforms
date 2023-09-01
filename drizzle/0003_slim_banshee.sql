@@ -1,0 +1,1 @@
+ALTER TABLE users ADD `email_confirmed` integer DEFAULT false NOT NULL;

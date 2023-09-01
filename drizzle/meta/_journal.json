@@ -15,6 +15,20 @@
       "when": 1693319962168,
       "tag": "0001_giant_whistler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1693592225080,
+      "tag": "0002_fuzzy_iron_lad",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1693592406050,
+      "tag": "0003_slim_banshee",
+      "breakpoints": true
     }
   ]
 }
